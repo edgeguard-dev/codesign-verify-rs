@@ -163,12 +163,8 @@ impl From<CFErrorRef> for Error {
         }
         unsafe {
             let err = CFError::wrap_under_get_rule(err);
-            Error::CFError(format!(
-                "{:?}",
-                CFDictionary::wrap_under_create_rule(CFErrorCopyUserInfo(
-                    err.as_concrete_TypeRef()
-                )),
-            ))
+            let dict = CFErrorCopyUserInfo(err.as_concrete_TypeRef());
+            Error::CFError(format!("{:?}", dict))
         }
     }
 }
