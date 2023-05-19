@@ -156,19 +156,6 @@ impl Context {
         self.name_for_field(SecOID::IssuerName)
     }
 
-    pub fn sha1_thumbprint(&self) -> String {
-        let cert_data = unsafe {
-            CFData::wrap_under_create_rule(SecCertificateCopyData(self.cert.as_concrete_TypeRef()))
-        };
-
-        use sha1::Digest;
-        let hash = sha1::Sha1::digest(cert_data.bytes());
-
-        hash.as_slice()
-            .iter()
-            .fold(String::new(), |s, byte| s + &format!("{:02x}", byte))
-    }
-
     pub fn sha256_thumbprint(&self) -> String {
         let cert_data = unsafe {
             CFData::wrap_under_create_rule(SecCertificateCopyData(self.cert.as_concrete_TypeRef()))
