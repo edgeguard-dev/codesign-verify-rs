@@ -105,11 +105,6 @@ impl SignatureContext {
         self.0.issuer_name()
     }
 
-    /// Compute the sha1 thumbprint of the leaf certificate
-    pub fn sha1_thumbprint(&self) -> String {
-        self.0.sha1_thumbprint()
-    }
-
     /// Compute the sha256 thumbprint of the leaf certificate
     pub fn sha256_thumbprint(&self) -> String {
         self.0.sha256_thumbprint()
@@ -141,11 +136,6 @@ mod tests {
             ctx.issuer_name().organization_unit.as_deref(),
             Some("Apple Certification Authority")
         );
-
-        assert_eq!(
-            ctx.sha1_thumbprint(),
-            "013e2787748a74103d62d2cdbf77a1345517c482"
-        );
     }
 
     #[test]
@@ -164,11 +154,6 @@ mod tests {
         assert_eq!(
             ctx.issuer_name().common_name.as_deref(),
             Some("Microsoft Windows Production PCA 2011")
-        );
-
-        assert_eq!(
-            ctx.sha1_thumbprint(),
-            "a4341b9fd50fb9964283220a36a1ef6f6faa7840"
         );
 
         assert_eq!(

@@ -155,20 +155,6 @@ impl Context {
         }
     }
 
-    pub fn sha1_thumbprint(&self) -> String {
-        let cert_ref = unsafe { self.leaf_cert_ptr.as_ref().unwrap() };
-        let cert_data = unsafe {
-            std::slice::from_raw_parts(cert_ref.pbCertEncoded, cert_ref.cbCertEncoded as _)
-        };
-
-        use sha1::Digest;
-        let hash = sha1::Sha1::digest(cert_data);
-
-        hash.as_slice()
-            .iter()
-            .fold(String::new(), |s, byte| s + &format!("{:02x}", byte))
-    }
-
     pub fn sha256_thumbprint(&self) -> String {
         let cert_ref = unsafe { self.leaf_cert_ptr.as_ref().unwrap() };
         let cert_data = unsafe {
