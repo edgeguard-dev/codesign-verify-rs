@@ -31,7 +31,7 @@ pub struct SignatureContext(Context);
 ///
 /// `country`: OID 2.5.4.6
 ///
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Name {
     pub common_name: Option<String>,       // 2.5.4.3
     pub organization: Option<String>,      // 2.5.4.10
