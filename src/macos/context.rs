@@ -1,9 +1,11 @@
 use super::sec_sys::*;
 use crate::Name;
+use std::collections::HashMap;
 
-pub(crate) struct Context {
+pub struct Context {
     cert: SecCertificate,
     dict: CFDictionary<CFString, CFDictionary<CFString, CFType>>,
+    all: CFDictionary,
 }
 
 enum SecProperty {
@@ -59,7 +61,7 @@ impl Into<CFString> for SecOID {
 }
 
 impl Context {
-    pub fn new(cert: SecCertificateRef) -> Self {
+    pub fn new(cert: SecCertificateRef, all: CFDictionary) -> Self {
         Context {
             cert: unsafe { SecCertificate::wrap_under_get_rule(cert) },
             dict: unsafe {
@@ -69,6 +71,7 @@ impl Context {
                     None,
                 ))
             },
+            all,
         }
     }
 
@@ -167,5 +170,63 @@ impl Context {
         hash.as_slice()
             .iter()
             .fold(String::new(), |s, byte| s + &format!("{:02x}", byte))
+    }
+
+    fn team_id(&self) -> Option<String> {
+        let key = unsafe { CFString::wrap_under_get_rule(kSecCodeInfoTeamIdentifier) };
+        let value_ref = self.all.find(key.as_CFTypeRef())?;
+        let team_id = unsafe { CFString::wrap_under_get_rule(*value_ref as _) };
+        return Some(team_id.to_string());
+    }
+
+    fn cd_hash(&self) -> Option<String> {
+        let key = unsafe { CFString::wrap_under_get_rule(kSecCodeInfoUnique) };
+        let value_ref = self.all.find(key.as_CFTypeRef())?;
+        let value = unsafe { CFData::wrap_under_get_rule(*value_ref as _) };
+        let hex = value
+            .iter()
+            .map(|b| format!("{:02x}", b))
+            .collect::<String>();
+        Some(hex)
+    }
+
+    fn info_plist(&self) -> Option<CFDictionary> {
+        let key = unsafe { CFString::wrap_under_get_rule(kSecCodeInfoPList) };
+        let value_ref = self.all.find(key.as_CFTypeRef())?;
+        let value = unsafe { CFDictionary::wrap_under_get_rule(*value_ref as _) };
+        Some(value)
+    }
+
+    fn key(&self, dict: &CFDictionary, key: &str) -> Option<String> {
+        let key = CFString::new(key);
+        let value_ref = dict.find(key.as_CFTypeRef())?;
+        let value = unsafe { CFString::wrap_under_get_rule(*value_ref as _) };
+        Some(value.to_string())
+    }
+
+    pub fn additional_properties(&self) -> Option<HashMap<String, String>> {
+        let cd_hash = self.cd_hash()?;
+        let info_plist = self.info_plist();
+        let team_id = self.team_id();
+        let mut ret = HashMap::new();
+        if let Some(info_plist) = info_plist {
+            let bundle_id = self.key(&info_plist, "CFBundleIdentifier");
+            let short_version = self.key(&info_plist, "CFBundleShortVersionString");
+            let bundle_version = self.key(&info_plist, "CFBundleVersion");
+            if let Some(bundle_id) = bundle_id {
+                ret.insert("bundle_id".to_string(), bundle_id);
+            }
+            if let Some(short_version) = short_version {
+                ret.insert("short_version".to_string(), short_version);
+            }
+            if let Some(bundle_version) = bundle_version {
+                ret.insert("bundle_version".to_string(), bundle_version);
+            }
+        }
+        if let Some(team_id) = team_id {
+            ret.insert("team_id".to_string(), team_id);
+        }
+        ret.insert("cd_hash".to_string(), cd_hash);
+        Some(ret)
     }
 }

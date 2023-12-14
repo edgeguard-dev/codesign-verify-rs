@@ -1,5 +1,6 @@
 use super::wintrust_sys::*;
 use crate::Name;
+use std::collections::HashMap;
 
 #[allow(non_camel_case_types)]
 #[repr(C)]
@@ -162,5 +163,9 @@ impl Context {
         hash.as_slice()
             .iter()
             .fold(String::new(), |s, byte| s + &format!("{:02x}", byte))
+    }
+
+    pub fn additional_properties(&self) -> Option<HashMap<String, String>> {
+        None
     }
 }

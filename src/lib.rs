@@ -5,6 +5,7 @@ mod windows;
 
 #[cfg(target_os = "macos")]
 use macos::{Context, Verifier};
+use std::collections::HashMap;
 #[cfg(windows)]
 use windows::{Context, Verifier};
 
@@ -114,11 +115,17 @@ impl SignatureContext {
     pub fn serial(&self) -> Option<String> {
         self.0.serial()
     }
+
+    /// Additional properties.
+    pub fn additional_properties(&self) -> Option<HashMap<String, String>> {
+        self.0.additional_properties()
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::Error;
+    use std::collections::HashMap;
 
     #[test]
     #[cfg(target_os = "macos")]
@@ -135,6 +142,14 @@ mod tests {
         assert_eq!(
             ctx.issuer_name().organization_unit.as_deref(),
             Some("Apple Certification Authority")
+        );
+
+        assert_eq!(
+            ctx.additional_properties(),
+            Some(HashMap::from([(
+                "cd_hash".to_string(),
+                "aee97b850a12f9cac3ec399094071cad63325818".to_string()
+            )]))
         );
     }
 
