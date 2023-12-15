@@ -185,7 +185,7 @@ impl Context {
         let value = unsafe { CFData::wrap_under_get_rule(*value_ref as _) };
         let hex = value
             .iter()
-            .map(|b| format!("{:02x}", b))
+            .map(|b| format!("{:02X}", b))
             .collect::<String>();
         Some(hex)
     }
@@ -202,6 +202,13 @@ impl Context {
         let value_ref = dict.find(key.as_CFTypeRef())?;
         let value = unsafe { CFString::wrap_under_get_rule(*value_ref as _) };
         Some(value.to_string())
+    }
+
+    fn platform_id(&self) -> Option<i32> {
+        let key = unsafe { CFString::wrap_under_get_rule(kSecCodeInfoPlatformIdentifier) };
+        let value_ref = self.all.find(key.as_CFTypeRef())?;
+        let value = unsafe { CFNumber::wrap_under_get_rule(*value_ref as _) };
+        value.to_i32()
     }
 
     pub fn additional_properties(&self) -> Option<HashMap<String, String>> {
@@ -225,6 +232,9 @@ impl Context {
         }
         if let Some(team_id) = team_id {
             ret.insert("team_id".to_string(), team_id);
+        }
+        if let Some(platform_id) = self.platform_id() {
+            ret.insert("platform_id".to_string(), platform_id.to_string());
         }
         ret.insert("cd_hash".to_string(), cd_hash);
         Some(ret)

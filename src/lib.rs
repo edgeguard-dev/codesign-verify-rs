@@ -146,10 +146,13 @@ mod tests {
 
         assert_eq!(
             ctx.additional_properties(),
-            Some(HashMap::from([(
-                "cd_hash".to_string(),
-                "aee97b850a12f9cac3ec399094071cad63325818".to_string()
-            )]))
+            Some(HashMap::from([
+                (
+                    "cd_hash".to_string(),
+                    "AEE97B850A12F9CAC3EC399094071CAD63325818".to_string()
+                ),
+                ("platform_id".to_string(), "15".to_string())
+            ]))
         );
     }
 
