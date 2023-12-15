@@ -5,7 +5,7 @@ mod sec_sys;
 use super::Error;
 use sec_sys::*;
 
-pub(crate) struct Verifier(SecCodeKind);
+pub struct Verifier(SecCodeKind);
 pub(crate) use context::Context;
 
 #[derive(Debug)]
@@ -72,7 +72,7 @@ impl Verifier {
         let certs = unsafe { CFArray::<SecCertificate>::wrap_under_get_rule(*certs_ref as _) };
         let leaf_cert = certs.get(0).ok_or(Error::LeafCertNotFound)?;
 
-        Ok(Context::new(leaf_cert.as_concrete_TypeRef()))
+        Ok(Context::new(leaf_cert.as_concrete_TypeRef(), sec_info))
     }
 
     /// Retreive a dictionary of various pieces of information from a code signature.

@@ -115,6 +115,9 @@ extern "C" {
 
     pub static kSecGuestAttributePid: CFStringRef;
     pub static kSecCodeInfoCertificates: CFStringRef;
+    pub static kSecCodeInfoTeamIdentifier: CFStringRef;
+    pub static kSecCodeInfoPList: CFStringRef;
+    pub static kSecCodeInfoUnique: CFStringRef;
 
     pub static kSecPropertyKeyValue: CFStringRef;
     pub static kSecPropertyKeyLabel: CFStringRef;
