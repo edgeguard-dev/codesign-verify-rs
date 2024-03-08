@@ -56,7 +56,7 @@ impl Verifier {
         Self::for_file(path)
     }
 
-    pub fn verify(&self) -> Result<Context, Error> {
+    pub fn verify(&self, _: &str) -> Result<Context, Error> {
         unsafe {
             let mut file_info: WINTRUST_FILE_INFO = std::mem::zeroed();
             file_info.cbStruct = std::mem::size_of::<WINTRUST_FILE_INFO>() as u32;

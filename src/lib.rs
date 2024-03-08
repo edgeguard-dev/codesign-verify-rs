@@ -4,7 +4,10 @@ mod macos;
 mod windows;
 
 #[cfg(target_os = "macos")]
+pub use macos::errSecCSBadResource;
+#[cfg(target_os = "macos")]
 use macos::{Context, Verifier};
+
 use std::collections::HashMap;
 #[cfg(windows)]
 use windows::{Context, Verifier};
@@ -47,7 +50,7 @@ pub enum Error {
     InvalidPath,      // The provided path was malformed
     LeafCertNotFound, // Unable to fetch certificate information
     #[cfg(target_os = "macos")]
-    CFError(String),
+    CFError(core_foundation::error::CFError),
     #[cfg(windows)]
     IoError(std::io::Error),
 }
@@ -75,10 +78,10 @@ impl CodeSignVerifier {
     /// ```no_run
     /// use codesign_verify::CodeSignVerifier;
     ///
-    /// CodeSignVerifier::for_file("C:/Windows/explorer.exe").unwrap().verify().unwrap();
+    /// CodeSignVerifier::for_file("C:/Windows/explorer.exe").unwrap().verify("").unwrap();
     /// ```
-    pub fn verify(self) -> Result<SignatureContext, Error> {
-        self.0.verify().map(|c| SignatureContext(c))
+    pub fn verify(self, requirement: &str) -> Result<SignatureContext, Error> {
+        self.0.verify(requirement).map(|c| SignatureContext(c))
     }
 }
 
@@ -90,7 +93,7 @@ impl SignatureContext {
     /// ```no_run
     /// use codesign_verify::CodeSignVerifier;
     ///
-    /// let ctx = CodeSignVerifier::for_file("C:/Windows/explorer.exe").unwrap().verify().unwrap();
+    /// let ctx = CodeSignVerifier::for_file("C:/Windows/explorer.exe").unwrap().verify("").unwrap();
     /// assert_eq!(
     ///    ctx.subject_name().organization.as_deref(),
     ///    Some("Microsoft Corporation")
@@ -131,7 +134,7 @@ mod tests {
     #[cfg(target_os = "macos")]
     fn test_signed() {
         let verifier = super::CodeSignVerifier::for_file("/sbin/ping").unwrap(); // Should always be present on macOS
-        let ctx = verifier.verify().unwrap(); // Should always be signed
+        let ctx = verifier.verify("anchor apple generic").unwrap(); // Should always be signed
 
         // If those values begin to fail, Apple probably changed their certficate
         assert_eq!(
@@ -161,7 +164,7 @@ mod tests {
     fn test_signed() {
         let path = format!("{}/explorer.exe", std::env::var("windir").unwrap()); // Should always be present on Windows
         let verifier = super::CodeSignVerifier::for_file(path).unwrap();
-        let ctx = verifier.verify().unwrap(); // Should always be signed
+        let ctx = verifier.verify("").unwrap(); // Should always be signed
 
         // If those values begin to fail, Microsoft probably changed their certficate
         assert_eq!(
@@ -184,9 +187,13 @@ mod tests {
     fn test_unsigned() {
         let path = std::env::args().next().unwrap(); // own path, always unsigned and present
 
-        assert!(matches!(
-            super::CodeSignVerifier::for_file(path).unwrap().verify(),
-            Err(Error::Unsigned)
-        ));
+        let res = super::CodeSignVerifier::for_file(path)
+            .unwrap()
+            .verify("anchor apple");
+        assert!(
+            matches!(res, Err(Error::Unsigned)),
+            "error = {:?}",
+            res.err()
+        );
     }
 }
