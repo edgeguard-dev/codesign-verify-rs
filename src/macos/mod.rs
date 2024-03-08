@@ -7,6 +7,7 @@ use sec_sys::*;
 
 pub struct Verifier(SecCodeKind);
 pub(crate) use context::Context;
+pub use sec_sys::errSecCSBadResource;
 
 #[derive(Debug)]
 enum SecCodeKind {
@@ -60,8 +61,8 @@ impl Verifier {
         }
     }
 
-    pub fn verify(&self) -> Result<Context, Error> {
-        self.check_validity("anchor trusted")?; // This is the most generic verification
+    pub fn verify(&self, requirement: &str) -> Result<Context, Error> {
+        self.check_validity(requirement)?;
         let sec_info = self.get_code_singing_info()?;
         let cert_key = unsafe { CFString::wrap_under_get_rule(kSecCodeInfoCertificates) };
 
@@ -106,7 +107,7 @@ impl Verifier {
         let req = unsafe {
             match SecRequirementCreateWithStringAndErrors(
                 CFString::new(requirement).as_concrete_TypeRef(),
-                SecCSFlags::kSecCSDefaultFlags,
+                SecCSFlags::kSecCSCheckAllArchitectures,
                 Some(&mut err),
                 Some(&mut req),
             ) {
@@ -163,8 +164,7 @@ impl From<CFErrorRef> for Error {
         }
         unsafe {
             let err = CFError::wrap_under_get_rule(err);
-            let dict = CFErrorCopyUserInfo(err.as_concrete_TypeRef());
-            Error::CFError(format!("{:?}", dict))
+            Error::CFError(err)
         }
     }
 }

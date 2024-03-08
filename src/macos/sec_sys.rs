@@ -10,6 +10,7 @@ pub use core_foundation::{declare_TCFType, impl_CFTypeDescription, impl_TCFType}
 
 pub const errSecSuccess: OSStatus = 0;
 pub const errSecCSUnsigned: OSStatus = -67062;
+pub const errSecCSBadResource: OSStatus = -67054;
 
 pub struct __SecCode {}
 pub struct __SecStaticCode {}
@@ -48,6 +49,7 @@ impl_CFTypeDescription!(SecRequirement);
 #[allow(dead_code, non_camel_case_types)]
 pub enum SecCSFlags {
     kSecCSDefaultFlags = 0,
+    kSecCSCheckAllArchitectures = 1 << 0,
     kSecCSSigningInformation = 1 << 1,
     kSecCSConsiderExpiration = 1 << 31,
     kSecCSEnforceRevocationChecks = 1 << 30,
@@ -103,7 +105,7 @@ extern "C" {
         information: Option<&mut CFDictionaryRef>,
     ) -> OSStatus;
 
-    pub fn CFErrorCopyUserInfo(err: CFErrorRef) -> CFDictionaryRef;
+    // pub fn CFErrorCopyUserInfo(err: CFErrorRef) -> CFDictionaryRef;
 
     pub fn SecCertificateCopyData(certificate: SecCertificateRef) -> CFDataRef;
 
