@@ -107,7 +107,7 @@ impl Verifier {
         let req = unsafe {
             match SecRequirementCreateWithStringAndErrors(
                 CFString::new(requirement).as_concrete_TypeRef(),
-                SecCSFlags::kSecCSCheckAllArchitectures,
+                SecCSFlags::kSecCSDefaultFlags,
                 Some(&mut err),
                 Some(&mut req),
             ) {
@@ -128,7 +128,7 @@ impl Verifier {
             SecCodeKind::Static(sec) => unsafe {
                 SecStaticCodeCheckValidityWithErrors(
                     sec.as_concrete_TypeRef(),
-                    SecCSFlags::kSecCSDefaultFlags,
+                    SecCSFlags::kSecCSCheckAllArchitectures,
                     req.as_concrete_TypeRef(),
                     Some(&mut err),
                 )
@@ -136,7 +136,7 @@ impl Verifier {
             SecCodeKind::Dynamic(sec) => unsafe {
                 SecCodeCheckValidityWithErrors(
                     sec.as_concrete_TypeRef(),
-                    SecCSFlags::kSecCSDefaultFlags,
+                    SecCSFlags::kSecCSCheckAllArchitectures,
                     req.as_concrete_TypeRef(),
                     Some(&mut err),
                 )
